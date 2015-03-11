@@ -1,0 +1,24 @@
+_welcome:
+    path:     /
+    defaults: { _controller: AcmeDemoBundle:Welcome:index }
+
+_demo_secured:
+    resource: "@AcmeDemoBundle/Controller/SecuredController.php"
+    type:     annotation
+
+_demo:
+    resource: "@AcmeDemoBundle/Controller/DemoController.php"
+    type:     annotation
+    prefix:   /demo
+
+# endpoint to get the list of players
+api_get_players:
+    path: /api/players
+    defaults: { _controller: AcmeDemoBundle:Api:getPlayers }
+    methods: [GET]
+
+# endpoint to increment the score
+api_increment_value:
+    path: /api/players/{playerId}/score
+    defaults: { _controller: AcmeDemoBundle:Api:increment }
+    methods: [POST]

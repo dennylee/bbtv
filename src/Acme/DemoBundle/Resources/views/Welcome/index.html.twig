@@ -1,0 +1,77 @@
+<html>
+<head>
+	{% stylesheets 'bundles/acmedemo/css/*' filter='cssrewrite' %}
+	<link rel="stylesheet" href="{{ asset_url }}" />
+	{% endstylesheets %}
+	<title>Leaderboard</title>
+
+</head>
+<body ng-app="myAppModule" ng-controller="LeaderboardCtrl">
+
+
+<div id="outer">
+	<div class="leaderboard" >
+		<div class="player " data-ng-class="{selected: hover }" ng-mouseenter="hover = true"
+				 ng-mouseleave="hover = false" data-ng-repeat="(key, player) in listOfPlayers.players" data-ng-click="selected(key)">
+
+			<span class="name">{% verbatim %}{{ player.name }}{% endverbatim %}</span>
+			<span class="score">{% verbatim %}{{ player.score }}{% endverbatim %}</span>
+		</div>
+	</div>
+
+	<div class="details" data-ng-hide="playerId == null">
+		<div class="name">{% verbatim %}{{ listOfPlayers.players[playerId]['name'] }}{% endverbatim %}</div>
+		<input type="button" class="inc" value="Give 5 points" data-ng-click="submit()">
+	</div>
+	<div class="none" data-ng-show="playerId == null">Click a player to select</div>
+
+
+</div>
+
+<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/angularjs/1.2.26/angular.min.js"></script>
+<script>
+	var myApp = angular.module('myAppModule', []);
+	myApp.controller('LeaderboardCtrl', function($http, $scope, $interval) {
+
+		$scope.listOfPlayers = null;
+		$scope.playerId = null;
+		$scope.stop = false;
+
+		$scope.init = function () {
+			$http.get("http://localhost:8000/api/players")
+				.success(function(data) {
+					$scope.listOfPlayers = data;
+//					$scope.playerId = 'ada-lovelace';
+				});
+
+			// this is probably not the way to do it. probably use web sockets but not familiar with it yet
+			// todo: need to kill the interval
+			$interval(function() {
+				$http.get("http://localhost:8000/api/players")
+					.success(function(data) {
+						$scope.listOfPlayers = data;
+					}).error(function() {
+						$scope.stop = true;
+					});
+			}, 3000);
+
+		};
+
+		// initialize the controller
+		$scope.init();
+
+		$scope.submit = function() {
+			$http.post("http://localhost:8000/api/players/" + $scope.playerId + "/score")
+				.success(function(data) {
+					$scope.listOfPlayers = data;
+				});
+		};
+
+		$scope.selected = function(id) {
+			$scope.playerId = id;
+		}
+
+	});
+</script>
+</body>
+</html>
